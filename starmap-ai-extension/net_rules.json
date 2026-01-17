@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        { "header": "x-frame-options", "operation": "remove" },
+        { "header": "content-security-policy", "operation": "remove" },
+        { "header": "cross-origin-opener-policy", "operation": "remove" },
+        { "header": "cross-origin-embedder-policy", "operation": "remove" },
+        { "header": "cross-origin-resource-policy", "operation": "remove" }
+      ]
+    },
+    "condition": {
+      "requestDomains": [
+        "chatgpt.com",
+        "claude.ai",
+        "gemini.google.com",
+        "accounts.google.com",
+        "myaccount.google.com",
+        "ogstr.google.com",
+        "www.googletagmanager.com",
+        "google.com",
+        "www.google.com",
+        "bing.com",
+        "www.bing.com",
+        "baidu.com",
+        "www.baidu.com",
+        "yiyan.baidu.com",
+        "yandex.com",
+        "www.yandex.com",
+        "grok.com",
+        "chatglm.cn",
+        "agent.minimaxi.com",
+        "minimaxi.com",
+        "deepseek.com",
+        "metaso.cn",
+        "www.metaso.cn",
+        "yuanbao.tencent.com",
+        "tongyi.aliyun.com",
+        "qianwen.aliyun.com",
+        "account.aliyun.com",
+        "passport.aliyun.com",
+        "login.aliyun.com",
+        "dashscope.aliyun.com",
+        "qwen.ai",
+        "chat.qwen.ai",
+        "kimi.com",
+        "www.kimi.com",
+        "kimi.moonshot.cn",
+        "passport.moonshot.cn",
+        "account.moonshot.cn",
+        "www.moonshot.cn",
+        "moonshot.cn",
+        "doubao.com",
+        "www.doubao.com"
+      ],
+      "resourceTypes": ["sub_frame"]
+    }
+  }
+]

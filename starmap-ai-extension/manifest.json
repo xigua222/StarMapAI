@@ -1,0 +1,93 @@
+{
+  "manifest_version": 3,
+  "name": "StarMap AI",
+  "version": "1.0.1",
+  "description": "一键驱动多个AI模型和搜索引擎，轻松获取答案.Send your questions and prompts to multiple AI models and search engines simultaneously just one click.",
+  "permissions": [
+    "tabs",
+    "scripting",
+    "activeTab",
+    "declarativeNetRequest",
+    "storage"
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "ruleset_1",
+        "enabled": true,
+        "path": "net_rules.json"
+      }
+    ]
+  },
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://claude.ai/*",
+    "https://gemini.google.com/*",
+    "https://chat.deepseek.com/*",
+    "https://tongyi.aliyun.com/*",
+    "https://qianwen.aliyun.com/*",
+    "https://chat.qwen.ai/*",
+    "https://kimi.com/*",
+    "https://*.kimi.com/*",
+    "https://kimi.moonshot.cn/*",
+    "https://*.moonshot.cn/*",
+    "https://moonshot.cn/*",
+    "https://www.doubao.com/*",
+    "https://metaso.cn/*",
+    "https://www.metaso.cn/*",
+    "https://yuanbao.tencent.com/*",
+    "https://www.baidu.com/*",
+    "https://www.bing.com/*",
+    "https://www.google.com/*",
+    "https://yandex.com/*",
+    "https://grok.com/*",
+    "https://yiyan.baidu.com/*",
+    "https://chatglm.cn/*",
+    "https://agent.minimaxi.com/*"
+  ],
+  "icons": {
+    "16": "starmapai.png",
+    "32": "starmapai.png",
+    "48": "starmapai.png",
+    "128": "starmapai.png"
+  },
+  "action": {
+    "default_icon": {
+      "16": "starmapai.png",
+      "32": "starmapai.png",
+      "48": "starmapai.png",
+      "128": "starmapai.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*",
+        "https://chat.deepseek.com/*",
+        "https://tongyi.aliyun.com/*",
+        "https://qianwen.aliyun.com/*",
+        "https://chat.qwen.ai/*",
+        "https://kimi.com/*",
+        "https://*.kimi.com/*",
+        "https://kimi.moonshot.cn/*",
+        "https://*.moonshot.cn/*",
+        "https://moonshot.cn/*",
+        "https://www.doubao.com/*",
+        "https://metaso.cn/*",
+        "https://www.metaso.cn/*",
+        "https://yuanbao.tencent.com/*",
+        "https://grok.com/*",
+        "https://yiyan.baidu.com/*",
+        "https://chatglm.cn/*",
+        "https://agent.minimaxi.com/*"
+      ],
+      "js": ["extractors.js", "content.js"],
+      "all_frames": true
+    }
+  ]
+}

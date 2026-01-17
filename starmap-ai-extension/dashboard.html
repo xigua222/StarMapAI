@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>StarMap AI</title>
+  <link rel="icon" href="starmapai.png">
+  <style>
+    :root {
+      --accent: #ff8a00;
+      --accent-dark: #e36f00;
+      --bg: #fbfbfb;
+      --text: #141414;
+      --muted: #666;
+      --grid-bg: #ededed;
+      --panel-bg: rgba(255, 255, 255, 0.82);
+      --panel-border: rgba(0,0,0,0.08);
+      --shadow: 0 10px 25px rgba(0,0,0,0.10);
+      --card-bg: #ffffff;
+      --modal-bg: #ffffff;
+      --input-bg: #ffffff;
+      --input-border: #ddd;
+      --icon: #666;
+      --icon-hover: #333;
+    }
+    html, body {
+      overflow: hidden;
+    }
+    body {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+    }
+    #brand {
+      position: fixed;
+      top: 10px;
+      left: 12px;
+      z-index: 130;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.0);
+      user-select: none;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+    #brand img {
+      width: 28px;
+      height: 28px;
+      display: block;
+      border-radius: 8px;
+    }
+
+    #infoModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.42);
+      z-index: 240;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      box-sizing: border-box;
+      backdrop-filter: blur(10px);
+    }
+    #infoModal.open {
+      display: flex;
+    }
+    .info-content {
+      width: 520px;
+      max-width: calc(100vw - 24px);
+      max-height: min(82vh, 720px);
+      overflow: auto;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(0,0,0,0.08);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      padding: 18px 18px 14px;
+    }
+    .info-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .info-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .info-title img {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: block;
+    }
+    .info-title h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: -0.01em;
+    }
+    .info-title p {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: #666;
+      line-height: 1.35;
+    }
+    .info-close {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,0.08);
+      background: rgba(0,0,0,0.04);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      color: rgba(0,0,0,0.65);
+    }
+    .info-close:hover {
+      background: rgba(0,0,0,0.08);
+      color: rgba(0,0,0,0.85);
+    }
+    .info-close svg {
+      width: 16px;
+      height: 16px;
+      display: block;
+    }
+    .info-section {
+      margin-top: 14px;
+    }
+    .info-section h3 {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.55);
+    }
+    .info-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .info-card {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 12px;
+      padding: 12px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.95);
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+    .info-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: rgba(255, 138, 0, 0.14);
+      border: 1px solid rgba(255, 138, 0, 0.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 138, 0, 0.95);
+    }
+    .info-icon svg {
+      width: 20px;
+      height: 20px;
+      display: block;
+    }
+    .info-card h4 {
+      margin: 0;
+      font-size: 14px;
+      letter-spacing: -0.01em;
+      color: rgba(0,0,0,0.88);
+    }
+    .info-card p {
+      margin: 6px 0 0;
+      font-size: 13px;
+      line-height: 1.45;
+      color: rgba(0,0,0,0.62);
+    }
+    @media (min-width: 560px) {
+      .info-cards {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    #topBar {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 999px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      z-index: 150;
+      max-width: calc(100vw - 40px);
+      overflow: hidden;
+      white-space: nowrap;
+      transition: transform 160ms ease, padding 160ms ease, gap 160ms ease;
+      transform-origin: top center;
+      transform: translateX(-50%) scale(0.78);
+    }
+    #topBar:hover {
+      gap: 10px;
+      padding: 8px 14px;
+      transform: translateX(-50%) scale(1);
+    }
+    .site-chip {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 1px solid var(--panel-border);
+      background: var(--card-bg);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+      flex: 0 0 24px;
+      transition: width 160ms ease, height 160ms ease, flex-basis 160ms ease;
+      cursor: grab;
+    }
+    .site-chip:active {
+      cursor: grabbing;
+    }
+    .site-chip.dragging {
+      opacity: 0.45;
+    }
+    #topBar:hover .site-chip {
+      width: 34px;
+      height: 34px;
+      flex-basis: 34px;
+    }
+    .site-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      transition: width 160ms ease, height 160ms ease;
+    }
+    #topBar:hover .site-icon {
+      width: 22px;
+      height: 22px;
+    }
+    .site-fallback {
+      font-size: 13px;
+      font-weight: 700;
+      color: #333;
+      user-select: none;
+    }
+    #topBarChips {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: inherit;
+      position: relative;
+      z-index: 1;
+    }
+    #topFocusFrame {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 0;
+      transform: translate3d(0, 0, 0);
+      border-radius: 999px;
+      border: 2px solid rgba(255, 138, 0, 0.85);
+      box-shadow: 0 2px 10px rgba(255, 138, 0, 0.18);
+      box-sizing: border-box;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0;
+      transition: opacity 120ms ease, transform 120ms ease, width 120ms ease, height 120ms ease;
+      will-change: transform, width, height;
+    }
+
+    #grid {
+      flex: 1;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 10px;
+      background: var(--grid-bg);
+      height: 100vh;
+      padding: 64px 10px 92px;
+      box-sizing: border-box;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-behavior: auto;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    #grid::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      display: none;
+    }
+    .iframe-container {
+      background: var(--card-bg);
+      position: relative;
+      height: 100%;
+      border-radius: 18px;
+      overflow: hidden;
+      flex: 0 0 min(560px, calc(100vw - 40px));
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .label-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: rgba(0,0,0,0.5);
+      color: white;
+      padding: 4px 8px;
+      font-size: 12px;
+      z-index: 10;
+      /* pointer-events: none; Removed to allow clicking */
+      border-bottom-right-radius: 4px;
+      text-decoration: none; /* Remove underline for link */
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .label-bar:hover {
+      background: rgba(0,0,0,0.8);
+    }
+    .label-title {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .label-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .label-btn {
+      width: 18px;
+      height: 18px;
+      border-radius: 6px;
+      border: 0;
+      background: rgba(255,255,255,0.12);
+      color: white;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+    .label-btn[aria-pressed="true"] {
+      background: rgba(255,255,255,0.34);
+    }
+    .label-btn svg {
+      width: 12px;
+      height: 12px;
+      display: block;
+    }
+    .label-btn[data-action="freeze"] svg {
+      width: 14px;
+      height: 14px;
+    }
+    .iframe-container.frozen {
+      outline: 2px solid rgba(255, 138, 0, 0.65);
+      outline-offset: -2px;
+      filter: grayscale(0.35) saturate(0.7) contrast(0.95);
+    }
+    .iframe-container.frozen .label-bar {
+      background: rgba(255, 138, 0, 0.55);
+    }
+    .iframe-container.frozen .label-title::after {
+      content: " (FROZEN)";
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      opacity: 0.95;
+    }
+    
+    /* Floating Controls */
+    #controlsPanel {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 86%;
+      max-width: 800px;
+      padding: 4px 8px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 999px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-sizing: border-box;
+      transition: padding 180ms ease, gap 180ms ease, transform 180ms ease, max-width 180ms ease;
+    }
+    #controlsPanel:hover,
+    #controlsPanel:focus-within {
+      padding: 14px 16px;
+      gap: 12px;
+      max-width: 1040px;
+      border-radius: 28px;
+    }
+    #scrollRange {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+    #scrollRange {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 18px;
+      background: transparent;
+    }
+    #scrollRange:focus {
+      outline: none;
+    }
+    #scrollRange::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255, 138, 0, 0.18);
+      border: 1px solid rgba(255, 138, 0, 0.14);
+    }
+    #scrollRange::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: rgba(255, 138, 0, 0.95);
+      border: 0;
+      margin-top: -7px;
+      box-shadow: 0 6px 16px rgba(255, 138, 0, 0.28);
+    }
+    #controlsPanel:hover #scrollRange::-webkit-slider-runnable-track,
+    #controlsPanel:focus-within #scrollRange::-webkit-slider-runnable-track {
+      height: 12px;
+      background: rgba(255, 138, 0, 0.24);
+      border: 1px solid rgba(255, 138, 0, 0.22);
+    }
+    #controlsPanel:hover #scrollRange::-webkit-slider-thumb,
+    #controlsPanel:focus-within #scrollRange::-webkit-slider-thumb {
+      width: 30px;
+      height: 30px;
+      margin-top: -10px;
+      box-shadow: 0 10px 22px rgba(255, 138, 0, 0.32);
+    }
+    #scrollRange::-moz-range-track {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255, 138, 0, 0.18);
+      border: 1px solid rgba(255, 138, 0, 0.14);
+    }
+    #scrollRange::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: rgba(255, 138, 0, 0.95);
+      border: 0;
+      box-shadow: 0 6px 16px rgba(255, 138, 0, 0.28);
+    }
+    #scrollRange::-moz-range-progress {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255, 138, 0, 0.28);
+    }
+    #controlsPanel:hover #scrollRange::-moz-range-track,
+    #controlsPanel:focus-within #scrollRange::-moz-range-track,
+    #controlsPanel:hover #scrollRange::-moz-range-progress,
+    #controlsPanel:focus-within #scrollRange::-moz-range-progress {
+      height: 12px;
+    }
+    #controlsPanel:hover #scrollRange::-moz-range-thumb,
+    #controlsPanel:focus-within #scrollRange::-moz-range-thumb {
+      width: 30px;
+      height: 30px;
+      box-shadow: 0 10px 22px rgba(255, 138, 0, 0.32);
+    }
+    #controlsPanel:not(:hover):not(:focus-within) #scrollRange {
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    #controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      width: 100%;
+    }
+    #promptWrap {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+    #promptInput {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--input-border);
+      border-radius: 25px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      background: var(--input-bg);
+      color: var(--text);
+    }
+    #promptClearBtn {
+      position: absolute;
+      right: 10px;
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      border: 0;
+      background: rgba(0,0,0,0.06);
+      color: rgba(0,0,0,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+    }
+    #promptClearBtn:hover {
+      background: rgba(0,0,0,0.10);
+      color: rgba(0,0,0,0.75);
+    }
+    #promptClearBtn svg {
+      width: 14px;
+      height: 14px;
+      display: block;
+    }
+    #controlsPanel:hover #promptInput,
+    #controlsPanel:focus-within #promptInput {
+      padding: 14px 20px;
+      font-size: 17px;
+    }
+    #controlsPanel:hover #promptClearBtn,
+    #controlsPanel:focus-within #promptClearBtn {
+      right: 14px;
+      width: 26px;
+      height: 26px;
+    }
+    #controlsPanel:hover #promptInput,
+    #controlsPanel:focus-within #promptInput {
+      padding-right: 44px;
+    }
+    #promptInput:focus {
+      border-color: var(--accent);
+    }
+    #sendBtn {
+      padding: 8px 14px;
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      white-space: nowrap;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+    #controlsPanel:hover #sendBtn,
+    #controlsPanel:focus-within #sendBtn {
+      padding: 14px 22px;
+    }
+    #sendBtn:hover { 
+      background-color: var(--accent-dark);
+    }
+    #sendBtn:active {
+      transform: scale(0.95);
+    }
+
+    #settingsBtn {
+      padding: 10px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--icon);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #settingsBtn:hover {
+      background-color: rgba(0,0,0,0.05);
+      color: var(--icon-hover);
+    }
+
+    #refreshBtn {
+      padding: 10px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--icon);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #refreshBtn:hover {
+      background-color: rgba(0,0,0,0.05);
+      color: var(--icon-hover);
+    }
+
+    #saveOutputsBtn {
+      padding: 10px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--icon);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #saveOutputsBtn:hover {
+      background-color: rgba(0,0,0,0.05);
+      color: var(--icon-hover);
+    }
+    #saveOutputsBtn[disabled] {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    /* Modal */
+    #settingsModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      justify-content: center;
+      align-items: center;
+    }
+    #settingsModal.open {
+      display: flex;
+    }
+    .modal-content {
+      background: var(--modal-bg);
+      padding: 14px;
+      border-radius: 12px;
+      width: 420px;
+      max-width: calc(100vw - 24px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      max-height: min(74vh, 520px);
+      overflow: auto;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .modal-header h2 { margin: 0; font-size: 18px; }
+    .close-btn {
+      background: none; border: none; font-size: 20px; cursor: pointer; color: var(--muted);
+    }
+    .section-title {
+      margin: 10px 0 6px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    #aiCheckboxes,
+    #searchCheckboxes {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 14px;
+      row-gap: 6px;
+    }
+    .model-option {
+      display: flex;
+      align-items: center;
+      padding: 4px 0;
+    }
+    .model-option label { flex: 1; margin-left: 10px; cursor: pointer; font-size: 13px; }
+    .modal-footer {
+      margin-top: 12px;
+      text-align: right;
+    }
+    #saveSettingsBtn {
+      padding: 8px 16px;
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="brand"><img src="starmapai.png" alt="StarMap AI" /></div>
+  <div id="topBar">
+    <div id="topFocusFrame"></div>
+    <div id="topBarChips"></div>
+  </div>
+  <div id="grid"></div>
+  
+  <div id="controlsPanel">
+    <input id="scrollRange" type="range" min="0" max="0" step="1" value="0" />
+    <div id="controls">
+      <button id="settingsBtn" title="Select Models">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      </button>
+      <button id="refreshBtn" title="New Chat (Reset All)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+      </button>
+      <button id="saveOutputsBtn" title="save">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+          <path d="M17 21v-8H7v8"></path>
+          <path d="M7 3v5h8"></path>
+        </svg>
+      </button>
+      <div id="promptWrap">
+        <input type="text" id="promptInput" placeholder="Enter prompt to send to all models..." />
+        <button id="promptClearBtn" type="button" title="Clear">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18"></path>
+            <path d="M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <button id="sendBtn">Send</button>
+    </div>
+  </div>
+
+  <div id="settingsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Select Models</h2>
+        <button class="close-btn" id="closeSettingsBtn">&times;</button>
+      </div>
+      <div class="section-title">AI Models</div>
+      <div id="aiCheckboxes"></div>
+      <div class="section-title">Search Engines</div>
+      <div id="searchCheckboxes"></div>
+      <div class="modal-footer">
+        <button id="saveSettingsBtn">Save & Reload</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="infoModal">
+    <div class="info-content" role="dialog" aria-modal="true" aria-label="StarMap AI 信息">
+      <div class="info-header">
+        <div class="info-title">
+          <img src="starmapai.png" alt="StarMap AI" />
+          <div>
+            <h2>隐私保护与最佳实践</h2>
+            <p>StarMap AI 仅做页面聚合与联动，不采集、不保存、不上传你的任何数据。</p>
+          </div>
+        </div>
+        <button class="info-close" id="closeInfoBtn" type="button" aria-label="关闭">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18"></path>
+            <path d="M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="info-section">
+        <h3>隐私</h3>
+        <div class="info-cards">
+          <div class="info-card">
+            <div class="info-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+            </div>
+            <div>
+              <h4>0 信息收集</h4>
+              <p>不收集账号、Cookie、聊天内容、输入内容、浏览记录等任何信息。</p>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12a9 9 0 1 1-9-9"></path>
+                <path d="M12 7v6l3 3"></path>
+              </svg>
+            </div>
+            <div>
+              <h4>仅做聚合</h4>
+              <p>工作在你本地浏览器里，只负责把多个模型页面并排展示与一键发送。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h3>最佳实践</h3>
+        <div class="info-cards">
+          <div class="info-card">
+            <div class="info-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 13a8 8 0 1 1-8-9"></path>
+                <path d="M12 12l6-6"></path>
+              </svg>
+            </div>
+            <div>
+              <h4>控制并发数量</h4>
+              <p>同时打开过多页面会卡顿或加载慢，推荐聚合 3–5 个模型。</p>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5z"></path>
+                <path d="M9 10V7a3 3 0 0 1 6 0v3"></path>
+              </svg>
+            </div>
+            <div>
+              <h4>提前完成登录</h4>
+              <p>首次使用请分别登录各 AI 站点，否则模型无法正常响应或被限制。</p>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v4"></path>
+                <path d="M12 18v4"></path>
+                <path d="M4.93 4.93l2.83 2.83"></path>
+                <path d="M16.24 16.24l2.83 2.83"></path>
+                <path d="M2 12h4"></path>
+                <path d="M18 12h4"></path>
+                <path d="M4.93 19.07l2.83-2.83"></path>
+                <path d="M16.24 7.76l2.83-2.83"></path>
+              </svg>
+            </div>
+            <div>
+              <h4>避免插件冲突</h4>
+              <p>请关闭其他同类“自动填充/自动发送/聚合多模型”插件，避免脚本冲突。</p>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v8"></path>
+                <path d="M12 14v8"></path>
+                <path d="M8 10h8"></path>
+                <path d="M8 14h8"></path>
+              </svg>
+            </div>
+            <div>
+              <h4>稳定使用建议</h4>
+              <p>遇到加载慢可先刷新单个卡片；必要时仅保留常用模型组合。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="dashboard.js"></script>
+</body>
+</html>
